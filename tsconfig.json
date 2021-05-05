@@ -12,6 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "lib": [
       "esnext",
+      "ES2020",
       "dom"
     ],
     "types": [

@@ -1,8 +1,8 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js add loadash-es
+  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js add -D @types/troika-three-text
 
 PATH: 
-  C:\Program Files\PowerShell\7;C:\Program Files\AdoptOpenJDK\jdk-15.0.2.7-hotspot\bin;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Program Files (x86)\Razer\ChromaBroadcast\bin;C:\Program Files\Razer\ChromaBroadcast\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\odex_\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\odex_\AppData\Local\java\openjdk-14+36_windows-x64_bin\jdk-14\bin;C:\Program Files\Git\cmd;C:\Users\odex_\AppData\Local\Yarn\bin;C:\Users\odex_\AppData\Local\ffmpeg\ffmpeg-4.2.3-win64-static\bin;C:\Users\odex_\.cargo\bin;C:\Program Files\MySQL\MySQL Server 8.0\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\odex_\AppData\Local\Microsoft\WindowsApps;C:\Users\odex_\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files (x86)\GitHub CLI\;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\PowerShell\7\;C:\Program Files\CMake\bin
+  C:\Program Files\PowerShell\7;C:\Program Files\AdoptOpenJDK\jdk-15.0.2.7-hotspot\bin;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Program Files (x86)\Razer\ChromaBroadcast\bin;C:\Program Files\Razer\ChromaBroadcast\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\odex_\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\odex_\AppData\Local\java\openjdk-14+36_windows-x64_bin\jdk-14\bin;C:\Program Files\Git\cmd;C:\Users\odex_\AppData\Local\Yarn\bin;C:\Users\odex_\AppData\Local\ffmpeg\ffmpeg-4.2.3-win64-static\bin;C:\Users\odex_\.cargo\bin;C:\Program Files\MySQL\MySQL Server 8.0\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\odex_\AppData\Local\Microsoft\WindowsApps;C:\Users\odex_\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files (x86)\GitHub CLI\;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\PowerShell\7\;C:\Users\odex_\.cargo\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\odex_\AppData\Local\Microsoft\WindowsApps;C:\Users\odex_\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\odex_\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files (x86)\GitHub CLI\;C:\Program Files\CMake\bin;
 
 Yarn version: 
   1.22.10
@@ -14,7 +14,7 @@ Platform:
   win32 x64
 
 Trace: 
-  Error: https://registry.npm.taobao.org/loadash-es: Not found
+  Error: https://registry.npm.taobao.org/@types%2ftroika-three-text: Not found
       at Request.params.callback [as _callback] (C:\Users\odex_\AppData\Roaming\nvm\v14.16.0\node_modules\yarn\lib\cli.js:66988:18)
       at Request.self.callback (C:\Users\odex_\AppData\Roaming\nvm\v14.16.0\node_modules\yarn\lib\cli.js:140662:22)
       at Request.emit (events.js:315:20)
@@ -37,13 +37,19 @@ npm manifest:
     },
     "dependencies": {
       "@types/three": "^0.127.1",
+      "lodash-es": "^4.17.21",
+      "pathfinding": "^0.4.18",
       "simplex-noise": "^2.4.0",
       "stats.js": "^0.17.0",
       "three": "0.127",
-      "troisjs": "^0.2.3",
+      "three.meshline": "^1.3.0",
+      "troika-three-text": "^0.41.1",
+      "troisjs": "^0.3.0-beta.5",
       "vue": "^3.0.5"
     },
     "devDependencies": {
+      "@types/lodash-es": "^4.17.4",
+      "@types/pathfinding": "^0.0.4",
       "@vitejs/plugin-vue": "^1.2.2",
       "@vue/compiler-sfc": "^3.0.5",
       "typescript": "^4.1.3",
@@ -100,6 +106,23 @@ Lockfile:
     dependencies:
       "@nodelib/fs.scandir" "2.1.4"
       fastq "^1.6.0"
+  
+  "@types/lodash-es@^4.17.4":
+    version "4.17.4"
+    resolved "https://registry.npm.taobao.org/@types/lodash-es/download/@types/lodash-es-4.17.4.tgz#b2e440d2bf8a93584a9fd798452ec497986c9b97"
+    integrity sha1-suRA0r+Kk1hKn9eYRS7El5hsm5c=
+    dependencies:
+      "@types/lodash" "*"
+  
+  "@types/lodash@*":
+    version "4.14.168"
+    resolved "https://registry.npm.taobao.org/@types/lodash/download/@types/lodash-4.14.168.tgz?cache=0&sync_timestamp=1613379158193&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Flodash%2Fdownload%2F%40types%2Flodash-4.14.168.tgz#fe24632e79b7ade3f132891afff86caa5e5ce008"
+    integrity sha1-/iRjLnm3rePxMoka//hsql5c4Ag=
+  
+  "@types/pathfinding@^0.0.4":
+    version "0.0.4"
+    resolved "https://registry.nlark.com/@types/pathfinding/download/@types/pathfinding-0.0.4.tgz#e878b8ef5c014743e95495afc4291df2b1c94726"
+    integrity sha1-6Hi471wBR0PpVJWvxCkd8rHJRyY=
   
   "@types/three@^0.127.1":
     version "0.127.1"
@@ -218,6 +241,13 @@ Lockfile:
     version "1.0.2"
     resolved "https://registry.npm.taobao.org/balanced-match/download/balanced-match-1.0.2.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fbalanced-match%2Fdownload%2Fbalanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
     integrity sha1-6D46fj8wCzTLnYf2FfoMvzV2kO4=
+  
+  bidi-js@^1.0.1:
+    version "1.0.2"
+    resolved "https://registry.nlark.com/bidi-js/download/bidi-js-1.0.2.tgz#1a497a762c2ddea377429d2649c9ce0f8a91527f"
+    integrity sha1-Gkl6diwt3qN3Qp0mScnOD4qRUn8=
+    dependencies:
+      require-from-string "^2.0.2"
   
   big-integer@^1.6.17:
     version "1.6.48"
@@ -464,6 +494,11 @@ Lockfile:
     resolved "https://registry.npm.taobao.org/hash-sum/download/hash-sum-2.0.0.tgz#81d01bb5de8ea4a214ad5d6ead1b523460b0b45a"
     integrity sha1-gdAbtd6OpKIUrV1urRtSNGCwtFo=
   
+  heap@0.2.5:
+    version "0.2.5"
+    resolved "https://registry.npm.taobao.org/heap/download/heap-0.2.5.tgz#713b65590ebcc40fcbeeaf55e851694092b39af1"
+    integrity sha1-cTtlWQ68xA/L7q9V6FFpQJKzmvE=
+  
   icss-replace-symbols@^1.1.0:
     version "1.1.0"
     resolved "https://registry.npm.taobao.org/icss-replace-symbols/download/icss-replace-symbols-1.1.0.tgz#06ea6f83679a7749e386cfe1fe812ae5db223ded"
@@ -541,6 +576,11 @@ Lockfile:
       big.js "^5.2.2"
       emojis-list "^3.0.0"
       json5 "^1.0.1"
+  
+  lodash-es@^4.17.21:
+    version "4.17.21"
+    resolved "https://registry.npm.taobao.org/lodash-es/download/lodash-es-4.17.21.tgz?cache=0&sync_timestamp=1613835893273&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Flodash-es%2Fdownload%2Flodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
+    integrity sha1-Q+YmxG5lkbd1C+srUBFzkMYJ4+4=
   
   lodash.camelcase@^4.3.0:
     version "4.3.0"
@@ -646,6 +686,13 @@ Lockfile:
     resolved "https://registry.nlark.com/path-parse/download/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
     integrity sha1-1i27VnlAXXLEc37FhgDp3c8G0kw=
   
+  pathfinding@^0.4.18:
+    version "0.4.18"
+    resolved "https://registry.npm.taobao.org/pathfinding/download/pathfinding-0.4.18.tgz#a9990f6fa22b7ef196e5651b049165403a045fe8"
+    integrity sha1-qZkPb6IrfvGW5WUbBJFlQDoEX+g=
+    dependencies:
+      heap "0.2.5"
+  
   picomatch@^2.2.1, picomatch@^2.2.3:
     version "2.2.3"
     resolved "https://registry.nlark.com/picomatch/download/picomatch-2.2.3.tgz#465547f359ccc206d3c48e46a1bcb89bf7ee619d"
@@ -744,6 +791,11 @@ Lockfile:
       safe-buffer "~5.1.1"
       string_decoder "~1.1.1"
       util-deprecate "~1.0.1"
+  
+  require-from-string@^2.0.2:
+    version "2.0.2"
+    resolved "https://registry.nlark.com/require-from-string/download/require-from-string-2.0.2.tgz#89a7fdd938261267318eafe14f9c32e598c36909"
+    integrity sha1-iaf92TgmEmcxjq/hT5wy5ZjDaQk=
   
   resolve@^1.19.0:
     version "1.20.0"
@@ -854,6 +906,11 @@ Lockfile:
     dependencies:
       any-promise "^1.0.0"
   
+  three.meshline@^1.3.0:
+    version "1.3.0"
+    resolved "https://registry.npm.taobao.org/three.meshline/download/three.meshline-1.3.0.tgz#362d9bd3480907a4d8a2663587722a34e5a7cc92"
+    integrity sha1-Ni2b00gJB6TYomY1h3IqNOWnzJI=
+  
   three@0.127:
     version "0.127.0"
     resolved "https://registry.nlark.com/three/download/three-0.127.0.tgz?cache=0&sync_timestamp=1619177927305&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fthree%2Fdownload%2Fthree-0.127.0.tgz#c463f4d41b2c735dcf8e9e51a388815e80cd3791"
@@ -876,10 +933,29 @@ Lockfile:
     resolved "https://registry.nlark.com/traverse/download/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
     integrity sha1-cXuPIgzAu3tE5AUUwisui7xw2Lk=
   
-  troisjs@^0.2.3:
-    version "0.2.3"
-    resolved "https://registry.nlark.com/troisjs/download/troisjs-0.2.3.tgz#6a881c2fa18cdb137d670c38b4e23c802a194bc7"
-    integrity sha1-aogcL6GM2xN9Zww4tOI8gCoZS8c=
+  troika-three-text@^0.41.1:
+    version "0.41.1"
+    resolved "https://registry.nlark.com/troika-three-text/download/troika-three-text-0.41.1.tgz#3dea31f110da7011bf02e8b2d4d229ac6cc66c21"
+    integrity sha1-Peox8RDacBG/Auiy1NIprGzGbCE=
+    dependencies:
+      bidi-js "^1.0.1"
+      troika-three-utils "^0.41.0"
+      troika-worker-utils "^0.41.0"
+  
+  troika-three-utils@^0.41.0:
+    version "0.41.0"
+    resolved "https://registry.nlark.com/troika-three-utils/download/troika-three-utils-0.41.0.tgz#03d6c2e8c62b5f80c8314ebee6d38b3906843d92"
+    integrity sha1-A9bC6MYrX4DIMU6+5tOLOQaEPZI=
+  
+  troika-worker-utils@^0.41.0:
+    version "0.41.0"
+    resolved "https://registry.nlark.com/troika-worker-utils/download/troika-worker-utils-0.41.0.tgz#b811a9d2d5ca707869db50e9e096d5ef3b67b2e6"
+    integrity sha1-uBGp0tXKcHhp21Dp4JbV7ztnsuY=
+  
+  troisjs@^0.3.0-beta.5:
+    version "0.3.0-beta.5"
+    resolved "https://registry.nlark.com/troisjs/download/troisjs-0.3.0-beta.5.tgz#2e154c6fc82c91e144deb167591f1d75e3f9b941"
+    integrity sha1-LhVMb8gskeFE3rFnWR8ddeP5uUE=
   
   ts-interface-checker@^0.1.9:
     version "0.1.13"

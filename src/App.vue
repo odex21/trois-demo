@@ -4,68 +4,139 @@
       ref="renderer"
       antialias
       resize
-      :orbit-ctrl="{ enableDamping: true, dampingFactor: 0.05 }"
+      :orbit-ctrl="{
+        enableDamping: true,
+        dampingFactor: 0.05,
+        enableRotate: false,
+      }"
       pointer
       shadow
     >
       <Stats />
-      <OrthographicCamera />
+      <!-- <OrthographicCamera /> -->
+      <Raycaster @pointer-move="handleOver" />
       <Camera
         ref="cameraRef"
         :fov="60"
         :position="{ z, y, x: 0 }"
-        :far="2000"
+        :far="5000"
       />
       <Scene ref="sceneRef">
         <AmbientLight color="#FFA716" />
         <PointLight
           ref="lightRef"
           cast-shadow
-          :shadow-map-size="{ width: 1024, height: 1024 }"
-          :intensity="0.56"
+          :position="lightPos"
+          :shadow-map-size="{ x: 1024, y: 1024 }"
+          :intensity="0.5"
         />
-        <!-- :position="{ z: 3, y: 4 }" -->
-
-        <InstancedMesh
-          ref="imeshRef"
-          :count="NUM_INSTANCES"
-          cast-shadow
-          receive-shadow
-        >
+        <InstancedMesh ref="heightImeshRef" :count="NUM_INSTANCES">
           <BoxGeometry :size="SIZE" />
-          <PhongMaterial color="#2EFEC9" />
+          <!-- <PhongMaterial color="#2EFEC9">
+            <cube-texture path="/cube/"></cube-texture>
+          </PhongMaterial> -->
+          <!-- <MatcapMaterial src="/5C4E41_CCCDD6_9B979B_B1AFB0-128px.png" /> -->
+          <MatcapMaterial src="/2A4BA7_1B2D44_1F3768_233C81-128px.png" />
+          <!--  -->
+        </InstancedMesh>
+
+        <InstancedMesh ref="imeshRef" :count="NUM_INSTANCES">
+          <BoxGeometry :size="SIZE" />
+          <!-- <PhongMaterial color="#E9FBFE" /> -->
+          <matcap-material src="/5B4CBC_B59AF2_9B84EB_8F78E4-128px.png" />
         </InstancedMesh>
 
         <InstancedMesh
-          ref="heightImeshRef"
+          ref="startImeshRef"
           :count="NUM_INSTANCES"
           cast-shadow
           receive-shadow
         >
           <BoxGeometry :size="SIZE" />
-          <PhongMaterial color="#E9FBFE" />
+          <basic-material
+            color="#F01D2D"
+            :wireframe="true"
+            :wireframeLinewidth="2"
+          />
+        </InstancedMesh>
+
+        <InstancedMesh
+          ref="endImeshRef"
+          :count="NUM_INSTANCES"
+          cast-shadow
+          receive-shadow
+        >
+          <BoxGeometry :size="SIZE" />
+          <basic-material
+            color="#27D0E3"
+            :wireframe="true"
+            :wireframeLinewidth="2"
+          />
         </InstancedMesh>
 
         <Plane
           :width="W * 2"
           :height="H * 2"
-          :position="{ z: -10 }"
+          :position="{ z: 0 }"
           receive-shadow
         >
           <PhongMaterial color="#60FCDE" />
         </Plane>
-        <Tube
-          :points="points"
-          :radius="0.1"
-          :radialSegments="8"
-          :tubularSegments="8"
-          cast-shadow
-          receive-shadow
+
+        <template v-for="(p, i) in routeMap" :key="i">
+          <MeshLine
+            ref="tubeMeshRef"
+            :points="pathtoPoints(p, i)"
+            v-if="i === curRouteIndex"
+          >
+            <mesh-line-material
+              :ref="($event) => materialRef(i, $event)"
+              :uniforms="lineAnimateMaterialUnitforms"
+            ></mesh-line-material>
+          </MeshLine>
+        </template>
+        <MeshLine :points="currentRotue">
+          <mesh-line-material
+            :uniforms="lineMaterialUnitforms"
+          ></mesh-line-material>
+        </MeshLine>
+        <!-- <Box ref="enemyRef" :size="1.5">
+          <BasicMaterial>
+            <Texture :src="enemyPic" />
+          </BasicMaterial>
+        </Box> -->
+        <Image
+          ref="enemyRef"
+          :width="100"
+          :height="100"
+          :src="enemyPic"
+          keepSize
         >
-          <ToonMaterial color="#56AEE8" />
-        </Tube>
+        </Image>
       </Scene>
     </Renderer>
+
+    <div class="h-300px top-0 right-3 w-500px z-10 absolute">
+      <div class="flex w-full items-center">
+        <span class="mr-6 text-white"> 当前路线： {{ curRouteIndex }} </span>
+        <ElSlider
+          class="flex-1"
+          v-model="curRouteIndex"
+          :min="0"
+          :max="routeMap.length - 1"
+        ></ElSlider>
+        {{ routeMap.length - 1 }}
+      </div>
+      <div>
+        <ElButton @click="play" type="primary">播放</ElButton>
+        <ElButton
+          @click="setEnableRotate"
+          :type="enableRotate ? 'primary' : 'default'"
+        >
+          旋转</ElButton
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,28 +157,77 @@ import {
   StandardMaterial,
   SphereGeometry,
   ToonMaterial,
+  EffectComposer,
+  RenderPass,
+  UnrealBloomPass,
+  HalftonePass,
+  MatcapMaterial,
+  TubeGeometry,
+  BasicMaterial,
+  Raycaster,
+  Mesh,
+  CubeTexture,
+  FXAAPass,
+  Box,
+  Texture,
+  Image,
 } from 'troisjs'
+import type { ThreeInterface } from 'troisjs/src/core/useThree'
 import {
   Object3D,
-  InstancedMesh as TypeInstancedMesh,
+  InstancedMesh as TInstancedMesh,
+  TubeGeometry as TypeTubeGeometry,
   Camera as TypeCamera,
   CameraHelper,
   PerspectiveCamera,
   BufferGeometry,
   Vector3,
   Line,
+  Scene as TScene,
+  LineBasicMaterial,
+  LineDashedMaterial,
+  Mesh as TMesh,
+  Sphere,
+  Material,
+  SphereBufferGeometry,
+  MeshBasicMaterial,
+  BoxHelper,
+  GridHelper,
+  ShaderMaterial,
+  Color,
+  PlaneGeometry,
+  BoxGeometry as TBoxGeometry,
+  BufferAttribute,
+  BoxBufferGeometry,
 } from 'three'
+import type { Intersection } from 'three'
+import { Text } from 'troika-three-text'
 
-import { throttle } from 'lodash-es'
+import { addRoutes, calcPosition } from './addRoute'
+
+import { debounce, over, throttle } from 'lodash-es'
+import PF from 'pathfinding'
 
 import Stats from 'troisjs/src/components/misc/Stats.js'
+import {
+  MeshLine,
+  MeshLineMaterial,
+  buildMeshLineUniforms,
+  MeshLineGeometory,
+} from './MeshLine'
 
-import SimplexNoise from 'simplex-noise'
-const simplex = new SimplexNoise()
+import map from '~/assets/level_camp_r_01.json'
+// import map from '~/assets/level_act18d0_ex06.json'
+import type { Pos } from './mapdata'
 
-import map from '~/assets/level_act18d0_ex06.json'
+import { expandPath } from './utils'
+import type { PFResArr } from './type'
 
-const SIZE = 1.5,
+ref: curRouteIndex = 1
+
+const enemyPic = 'enemy_1513_dekght_2.jpg'
+
+const SIZE = 1.98,
   NX = 20,
   NY = 20,
   PADDING = 0.02
@@ -115,7 +235,10 @@ const SIZEP = SIZE + PADDING
 const W = NX * SIZEP - PADDING
 const H = NY * SIZEP - PADDING
 
-const NUM_INSTANCES = NX * NY
+const mapData = map.mapData
+const { width, height } = mapData
+
+const NUM_INSTANCES = mapData.width * mapData.height
 
 let dummy: Object3D
 
@@ -123,48 +246,43 @@ ref: renderer = null as any
 ref: lightRef = null as any
 ref: imeshRef = null as any
 ref: heightImeshRef = null as any
+ref: tubeMeshRef = null as any
+ref: sceneRef = null as any
 
-ref: light = computed(() => lightRef?.light)
-ref: imesh = computed(() => imeshRef?.mesh as TypeInstancedMesh)
-ref: heightImesh = computed(() => heightImeshRef?.mesh as TypeInstancedMesh)
+ref: lowImesh = computed(() => imeshRef?.mesh as TInstancedMesh)
+ref: heightImesh = computed(() => heightImeshRef?.mesh as TInstancedMesh)
+ref: scene = computed(() => sceneRef.scene as TScene)
 
-ref: pointer = computed(() => renderer?.three.pointer)
+ref: troisTree = computed(() => renderer.three as ThreeInterface)
 
-const x0 = -W / 4 + PADDING
-const y0 = -H / 4 + PADDING + H / 4
-const route = map.routes[1]!
-const points = [
-  route.startPosition,
-  ...route.checkpoints.map((p) => p.position),
-  route.endPosition,
-].map((p) => new Vector3(x0 + p.col * SIZEP, y0 + p.row * SIZEP, -9))
-const geometry = new BufferGeometry().setFromPoints(points)
-new Line()
-//.startPosition
+const x0 = (-mapData.width * SIZEP) / 2 + PADDING
+const y0 = (-mapData.height * SIZEP) / 2 + PADDING
+const route = map.routes[13]!
 
-const debounceLog = throttle(console.log, 1000)
+const grid = new PF.Grid(mapData.width, mapData.height)
 
-const r = 3
-const z = 1 * Math.sqrt(3) * r
-const y = -1 * r
-
-let err = false
-const animate = () => {
-  // light.position.x = pointer.positionV3.x
-  // light.position.y = pointer.positionV3.y
-  debounceLog(light.position)
-  // if (!err) {
-  //   try {
-  //   } catch (err) {
-  //     err = true
-  //   }
-  // }
+interface TileCube {
+  x: number
+  y: number
+  tile: {
+    tileKey: string
+    heightType: number
+    buildableType: number
+    passableMask: number
+    playerSideMask: number
+    blackboard: Record<string, any> | null
+  }
 }
 
-const mapData = map.mapData
+const startCubes: TileCube[] = []
+const endCubes: TileCube[] = []
 
-const { width, height } = mapData
-// const grids: number[][] = []
+ref: startImeshRef = null as any
+ref: startImesh = computed(() => startImeshRef.mesh as TInstancedMesh)
+
+ref: endImeshRef = null as any
+ref: endImesh = computed(() => endImeshRef.mesh as TInstancedMesh)
+
 const cubes = (() => {
   const arr = []
   for (let y = height - 1; y > -1; y--) {
@@ -176,77 +294,321 @@ const cubes = (() => {
 
     for (let x = width - 1; x > -1; x--) {
       const tile = mapData.tiles[y * width + x]
+      grid.setWalkableAt(x, y, tile.passableMask === 3)
       arr.push({
         x,
         y,
         tile,
       })
+
+      if (tile.tileKey === 'tile_start') {
+        startCubes.push({
+          x,
+          y,
+          tile,
+        })
+      } else if (tile.tileKey === 'tile_end') {
+        endCubes.push({
+          x,
+          y,
+          tile,
+        })
+      }
     }
   }
   return arr
 })()
+
+const routeMap = map.routes.map((r, i) => {
+  if (!r) {
+    return []
+  }
+
+  const path = addRoutes(r!, grid)
+
+  return path
+})
+
+ref: currentRotue = computed(() => {
+  const path = routeMap[curRouteIndex].map((e) => e.points ?? []).flat()
+
+  const raw = map.routes[curRouteIndex]
+
+  return path.map(
+    (e) =>
+      new Vector3(
+        x0 + e.x * SIZEP,
+        y0 + e.y * SIZEP,
+        raw?.motionMode ? 2.5 : 1.5
+      )
+  )
+})
+
+const pathtoPoints = (path: PFResArr[], i: number) => {
+  const raw = map.routes[i]
+
+  if (!raw) return []
+  const s = path[0].points![0]
+  const startV = new Vector3(
+    x0 + s.x * SIZEP,
+    y0 + s.y * SIZEP,
+    raw?.motionMode ? 2.5 : 1.5
+  )
+
+  if (enemyRef?.mesh) {
+    const mesh = enemyRef.mesh as TBoxGeometry
+    dummy.position.set(startV.x, startV.y - 0.2, startV.z + 0.5)
+    dummy.updateMatrix()
+    mesh.applyMatrix4(dummy.matrix)
+  }
+  return Array.from({ length: 100 }, (v, i) => startV.clone())
+}
+
+const getPathColor = (i: number) => {
+  const raw = map.routes[i]
+  return raw?.motionMode ? new Color('red') : new Color('yellow')
+}
+// camera
+const r = 17
+const z = 1 * Math.sqrt(3) * r
+const y = -1 * r
+
+let l = 3
+
+const lightPos = {
+  x: l * 4,
+  y: -l * 4,
+  z: l * 7,
+}
 
 const heightCube = cubes.filter((cube) => cube.tile.heightType)
 const lowCube = cubes.filter((cube) => !cube.tile.heightType)
 
 ref: cameraRef = (null as any) as { camera: PerspectiveCamera }
 
-const updateInstanceMatrix = () => {
-  const time = Date.now() * 0.0001
-  const mx = pointer.positionN.x * 0.1
-  const my = pointer.positionN.y * 0.1
-  const noise = 0.005
-  let x, y, z, nx, ny, rx, ry
+const c = new Color('#fff')
 
-  // console.log('x', x0)
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
-  const update = (imesh: TypeInstancedMesh) => (cube) => {
-    // x
+const indexColor = 0x9966ff
+
+const colIndexText = Array.from({ length: mapData.width }, (v, i) => {
+  const testText = new Text()
+  testText.text = i
+  testText.fontSize = 1.2
+  testText.color = indexColor
+  testText.position.z = 0.5
+  testText.position.x = x0 + i * SIZEP - SIZEP / 2
+  testText.position.y = y0 - SIZEP //x0 + i * SIZEP
+  testText.textAlign = 'center'
+
+  return testText
+})
+
+const rowIndexText = Array.from({ length: mapData.height }, (v, i) => {
+  const testText = new Text()
+  testText.text = alphabet[i]
+  testText.fontSize = 1.2
+  testText.color = indexColor
+  testText.position.z = 2
+  testText.position.y = y0 + i * SIZEP + SIZEP / 4
+  testText.position.x = x0 - SIZEP //x0 + i * SIZEP
+  testText.textAlign = 'center'
+
+  return testText
+})
+
+const initMapCubes = () => {
+  let x, y, z
+
+  const update = (mesh: TInstancedMesh, initZ?: number) => (cube: TileCube) => {
     x = x0 + cube.x * SIZEP
     y = y0 + cube.y * SIZEP
-    z = cube.tile.heightType ? -9.5 : -10
+    z = initZ ?? (cube.tile.heightType ? SIZEP / 2 : 0)
 
     dummy.position.set(x, y, z)
     dummy.updateMatrix()
-    imesh.setMatrixAt(cube.x * NY + cube.y, dummy.matrix)
+    const id = cube.x + mapData.width * cube.y
+    mesh.setMatrixAt(id, dummy.matrix)
+    if (!initZ) mesh.setColorAt(id, c)
   }
-  // // lowCube.forEach(update(imesh))
-  // // heightCube.forEach(update(heightImesh))
 
-  heightCube.forEach(update(imesh))
-  lowCube.forEach(update(heightImesh))
+  heightCube.forEach(update(heightImesh))
+  lowCube.forEach(update(lowImesh))
+  startCubes.forEach(update(startImesh, 2))
+  endCubes.forEach(update(endImesh, 2))
 
-  // for (let i = 0; i < NX; i++) {
-  //   for (let j = 0; j < NY; j++) {
-  //     x = x0 + i * SIZEP
-  //     y = y0 + j * SIZEP
-  //     nx = x * noise + mx
-  //     ny = y * noise + my
-  //     rx = simplex.noise3D(nx, ny, time) * Math.PI
-  //     ry = simplex.noise3D(ny, nx, time) * Math.PI
-  //     dummy.position.set(x, y, -10)
-  //     dummy.rotation.set(rx, ry, 0)
-  //     dummy.updateMatrix()
-  //     imesh.setMatrixAt(i * NY + j, dummy.matrix)
-  //   }
-  // }
+  if (lowImesh.instanceColor) lowImesh.instanceColor.needsUpdate = true
+  if (heightImesh.instanceColor) heightImesh.instanceColor.needsUpdate = true
 
-  imesh.instanceMatrix.needsUpdate = true
+  lowImesh.instanceMatrix.needsUpdate = true
+  heightImesh.instanceMatrix.needsUpdate = true
 }
-ref: sceneRef = null as any
+
+const lineMaterialUnitforms = buildMeshLineUniforms({ lineWidth: 0.2 })
+const lineAnimateMaterialUnitforms = buildMeshLineUniforms({
+  lineWidth: 0.2,
+  color: new Color('yellow'),
+})
+
+ref: routeRefs = new Map<number, any>()
+ref: materialRef = (i: number, mr: any) => {
+  routeRefs.set(i, mr)
+}
+
+ref: enemyRef = null as any
+
+const tasks = new Map<string, Function>()
+
 onMounted(() => {
   dummy = new Object3D()
-  let l = 1
-  light.position.x = l * 2
-  light.position.y = -l * 5
-  light.position.z = l * 2
 
-  renderer.onBeforeRender(animate)
+  let size = mapData.width + 4
+  if (size % 2 !== 1) size++
+  console.log(size)
+  const gridHelper = new GridHelper(size * 2, size)
+  gridHelper.rotateX(Math.PI / 2)
+
+  scene.add(gridHelper)
+  rowIndexText.forEach((t) => scene.add(t))
+  colIndexText.forEach((t) => scene.add(t))
 
   const helper = new CameraHelper(cameraRef.camera)
   sceneRef.scene.add(helper)
-  updateInstanceMatrix()
+  initMapCubes()
+
+  renderer.onBeforeRender((e: { time: number }) => {
+    tasks.forEach((t) => t(e.time))
+  })
+
+  renderer.onBeforeRender((e: { tiem: number }) => {})
 })
+
+const overMap = new Map<number, Function>()
+
+const handleOver = (e: { component: any; intersect: Intersection }) => {
+  if (e.component.geometry.type === 'BoxGeometry') {
+    if (!e.intersect) return
+    const mesh = e.intersect.object as TInstancedMesh
+    const instanceId = e.intersect.instanceId
+    if (typeof instanceId === 'undefined') return
+    if (instanceId === lastInstanceId) return
+    lastInstanceId = instanceId
+
+    resetIndex(rowIndexText)
+    resetIndex(colIndexText)
+    overMap.forEach((e) => e())
+
+    setColor(mesh, instanceId, new Color('#AEE7F0'))
+  }
+}
+
+let lastInstanceId: number
+function setColor(mesh: TInstancedMesh, instanceId: number, color: Color) {
+  set(instanceId, color)
+
+  const { x, y } = idToXY(instanceId)
+
+  const sc = color.multiplyScalar(1.5)
+  const rowStart = y * mapData.width
+
+  for (let i = rowStart; i < rowStart + mapData.width; i++) {
+    if (i === instanceId) continue
+    set(i, sc)
+  }
+
+  for (let i = x; i < NUM_INSTANCES; i += mapData.width) {
+    if (i === instanceId) continue
+    set(i, sc)
+  }
+
+  const rowIndex = rowIndexText[y]
+  rowIndex.color = 'red'
+  rowIndex.sync()
+
+  const colIndex = colIndexText[x]
+  colIndex.color = 'red'
+  colIndex.sync()
+
+  if (heightImesh.instanceColor) heightImesh.instanceColor.needsUpdate = true
+  if (lowImesh.instanceColor) lowImesh.instanceColor.needsUpdate = true
+
+  function set(id: number, color: Color) {
+    const targetTail = mapData.tiles[id]
+    const mesh = targetTail.heightType ? heightImesh : lowImesh
+    mesh.setColorAt(id, color)
+
+    const r = () => {
+      set(id, c)
+      overMap.delete(id)
+    }
+    overMap.set(id, r)
+  }
+}
+function resetIndex(arr: any[]) {
+  arr.forEach((e) => {
+    e.color = indexColor
+    e.sync()
+  })
+}
+
+const idToXY = (id: number) => {
+  return {
+    y: Math.floor(id / mapData.width),
+    x: id % mapData.width,
+  }
+}
+
+const play = () => {
+  let begin: number
+
+  const targetRef = routeRefs.get(curRouteIndex)
+  if (!targetRef) return
+  const material = targetRef.material as ShaderMaterial
+  const color = getPathColor(curRouteIndex)
+  material.uniforms.color.value = color
+
+  const r = routeMap[curRouteIndex]
+  const mesh = tubeMeshRef.geometry as MeshLineGeometory
+  const calc = calcPosition(r)
+
+  let err = false
+  const raw = map.routes[curRouteIndex]
+  if (!raw) return
+  const z = (raw.motionMode ? 2.5 : 1.5) + 0.1
+  const ez = z + 0.1
+  const enemyMesh = enemyRef.mesh as TMesh<BoxBufferGeometry>
+  console.log('e', enemyRef.position, enemyRef)
+  enemyMesh.rotation.x = Math.PI / 3
+
+  tasks.set('route', (time: number) => {
+    if (err) return
+    // if (!begin) begin = time
+    try {
+      const pos = calc(time)
+      if (!pos) {
+        tasks.delete('route')
+        console.log('done')
+        return
+      }
+      const v3 = new Vector3(x0 + pos.x * SIZEP, y0 + pos.y * SIZEP, z)
+
+      mesh.advance(v3)
+      enemyMesh.position.set(v3.x, v3.y - 0.2, ez + 0.5)
+    } catch (e) {
+      console.log(e)
+      err = true
+    }
+  })
+}
+
+ref: enableRotate = false
+
+const setEnableRotate = () => {
+  enableRotate = !enableRotate
+  // console.log('r',)
+  troisTree.cameraCtrl!.enableRotate = enableRotate ? true : false
+}
 </script>
 
 <style>
