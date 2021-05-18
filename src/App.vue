@@ -28,17 +28,24 @@
           cast-shadow
           :position="lightPos"
           :shadow-map-size="{ x: 1024, y: 1024 }"
-          :intensity="0.5"
+          :intensity="0.42"
         />
-        <InstancedMesh ref="heightImeshRef" :count="NUM_INSTANCES">
+        <InstancedMesh cast-shadow ref="heightImeshRef" :count="NUM_INSTANCES">
           <BoxGeometry :size="SIZE" />
-          <MatcapMaterial src="/2A4BA7_1B2D44_1F3768_233C81-128px.png" />
+          <MatcapMaterial
+            :wireframeLinewidth="1"
+            src="/2A4BA7_1B2D44_1F3768_233C81-128px.png"
+          />
         </InstancedMesh>
 
-        <InstancedMesh ref="imeshRef" :count="NUM_INSTANCES">
+        <InstancedMesh receive-shadow ref="imeshRef" :count="NUM_INSTANCES">
           <BoxGeometry :size="SIZE" />
-          <!-- <PhongMaterial color="#E9FBFE" /> -->
-          <matcap-material src="/5B4CBC_B59AF2_9B84EB_8F78E4-128px.png" />
+          <PhongMaterial color="#E9FBFE" />
+          <!-- <matcap-material
+            :wireframeLinewidth="1"
+            src="/5B4CBC_B59AF2_9B84EB_8F78E4-128px.png"
+          /> -->
+          <!-- <LineCubeMaterial color="#E9FBFE" /> -->
         </InstancedMesh>
 
         <InstancedMesh
@@ -51,7 +58,7 @@
           <basic-material
             color="#F01D2D"
             :wireframe="true"
-            :wireframeLinewidth="2"
+            :wireframeLinewidth="1"
           />
         </InstancedMesh>
 
@@ -65,14 +72,14 @@
           <basic-material
             color="#27D0E3"
             :wireframe="true"
-            :wireframeLinewidth="2"
+            :wireframeLinewidth="1"
           />
         </InstancedMesh>
 
         <Plane
           :width="W * 2"
           :height="H * 2"
-          :position="{ z: 0 }"
+          :position="{ z: -1 }"
           receive-shadow
         >
           <PhongMaterial color="#60FCDE" />
@@ -111,7 +118,7 @@
       </Scene>
     </Renderer>
 
-    <div class="h-300px top-0 right-3 w-500px z-10 absolute">
+    <div class="h-300px top-0 right-3 max-w-300px w-full z-10 absolute">
       <div class="flex w-full items-center">
         <span class="mr-6 text-white"> 当前路线： {{ curRouteIndex }} </span>
         <ElSlider
@@ -122,7 +129,7 @@
         ></ElSlider>
         {{ routeMap.length - 1 }}
       </div>
-      <div>
+      <div class="text-right">
         <ElButton @click="play" type="primary">播放</ElButton>
         <ElButton
           @click="setEnableRotate"
@@ -211,6 +218,8 @@ import {
   MeshLineGeometory,
 } from './MeshLine'
 
+import { LineCubeMaterial } from './CubeMaterial'
+
 import map from '~/assets/level_camp_r_01.json'
 // import map from '~/assets/level_act18d0_ex06.json'
 import type { Pos } from './mapdata'
@@ -222,10 +231,10 @@ ref: curRouteIndex = 1
 
 const enemyPic = 'enemy_1513_dekght_2.jpg'
 
-const SIZE = 9.9,
+const SIZE = 10,
   NX = 20,
   NY = 20,
-  PADDING = 0.1
+  PADDING = 0
 const SIZEP = SIZE + PADDING
 const W = NX * SIZEP - PADDING
 const H = NY * SIZEP - PADDING
@@ -467,15 +476,17 @@ onMounted(() => {
   let size = mapData.width + 4
   if (size % 2 !== 1) size++
   console.log(size)
-  const gridHelper = new GridHelper(size * 2, size)
+  const gridHelper = new GridHelper(size * SIZEP, size)
   gridHelper.rotateX(Math.PI / 2)
-
   scene.add(gridHelper)
+  gridHelper.translateX(-SIZEP / 2)
+  gridHelper.translateY(SIZEP / 2 + 0.5)
+  gridHelper.translateZ(-SIZEP / 2)
   rowIndexText.forEach((t) => scene.add(t))
   colIndexText.forEach((t) => scene.add(t))
 
-  const helper = new CameraHelper(cameraRef.camera)
-  sceneRef.scene.add(helper)
+  // const helper = new CameraHelper(cameraRef.camera)
+  // sceneRef.scene.add(helper)
   initMapCubes()
 
   renderer.onBeforeRender((e: { time: number }) => {

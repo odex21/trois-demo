@@ -178,5 +178,5 @@ type UserUnitforms = Partial<{
   dashArray: number
   dashRatio: number
   visibility: number
-  color: Color & number
+  color: Color
 }>
