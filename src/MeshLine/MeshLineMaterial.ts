@@ -1,6 +1,7 @@
 import { defineComponent } from '@vue/runtime-core'
 import { propsValues, ShaderMaterial } from 'troisjs'
 import * as THREE from 'three'
+import { Color } from 'three'
 
 const ShaderChunk = {
   ['meshline_vert']: [
@@ -61,7 +62,7 @@ const ShaderChunk = {
     '',
     '        vec2 perp = vec2( -dir1.y, dir1.x );',
     '        vec2 miter = vec2( -dir.y, dir.x );',
-    '        w = clamp( w / dot( miter, perp ), 0., 4. * lineWidth * width );',
+    // '        w = clamp( w / dot( miter, perp ), 0., 4. * lineWidth * width );',
     '',
     '    }',
     '',
@@ -177,5 +178,5 @@ type UserUnitforms = Partial<{
   dashArray: number
   dashRatio: number
   visibility: number
-  color: Color
+  color: Color & number
 }>

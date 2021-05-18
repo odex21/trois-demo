@@ -32,12 +32,7 @@
         />
         <InstancedMesh ref="heightImeshRef" :count="NUM_INSTANCES">
           <BoxGeometry :size="SIZE" />
-          <!-- <PhongMaterial color="#2EFEC9">
-            <cube-texture path="/cube/"></cube-texture>
-          </PhongMaterial> -->
-          <!-- <MatcapMaterial src="/5C4E41_CCCDD6_9B979B_B1AFB0-128px.png" /> -->
           <MatcapMaterial src="/2A4BA7_1B2D44_1F3768_233C81-128px.png" />
-          <!--  -->
         </InstancedMesh>
 
         <InstancedMesh ref="imeshRef" :count="NUM_INSTANCES">
@@ -227,13 +222,29 @@ ref: curRouteIndex = 1
 
 const enemyPic = 'enemy_1513_dekght_2.jpg'
 
-const SIZE = 1.98,
+const SIZE = 9.9,
   NX = 20,
   NY = 20,
-  PADDING = 0.02
+  PADDING = 0.1
 const SIZEP = SIZE + PADDING
 const W = NX * SIZEP - PADDING
 const H = NY * SIZEP - PADDING
+
+const OFFSET_Y = SIZE * 0.2
+const OFFSET_Z = SIZE * 0.5
+
+// camera
+const r = 100
+const z = 1 * Math.sqrt(3) * r
+const y = -1 * r
+
+let l = 30
+
+const lightPos = {
+  x: l * 4,
+  y: -l * 4,
+  z: l * 7,
+}
 
 const mapData = map.mapData
 const { width, height } = mapData
@@ -339,7 +350,7 @@ ref: currentRotue = computed(() => {
       new Vector3(
         x0 + e.x * SIZEP,
         y0 + e.y * SIZEP,
-        raw?.motionMode ? 2.5 : 1.5
+        raw?.motionMode ? SIZE + OFFSET_Z : SIZE / 2 + OFFSET_Z
       )
   )
 })
@@ -357,7 +368,7 @@ const pathtoPoints = (path: PFResArr[], i: number) => {
 
   if (enemyRef?.mesh) {
     const mesh = enemyRef.mesh as TBoxGeometry
-    dummy.position.set(startV.x, startV.y - 0.2, startV.z + 0.5)
+    dummy.position.set(startV.x, startV.y - 2, startV.z + 5)
     dummy.updateMatrix()
     mesh.applyMatrix4(dummy.matrix)
   }
@@ -368,23 +379,11 @@ const getPathColor = (i: number) => {
   const raw = map.routes[i]
   return raw?.motionMode ? new Color('red') : new Color('yellow')
 }
-// camera
-const r = 17
-const z = 1 * Math.sqrt(3) * r
-const y = -1 * r
-
-let l = 3
-
-const lightPos = {
-  x: l * 4,
-  y: -l * 4,
-  z: l * 7,
-}
 
 const heightCube = cubes.filter((cube) => cube.tile.heightType)
 const lowCube = cubes.filter((cube) => !cube.tile.heightType)
 
-ref: cameraRef = (null as any) as { camera: PerspectiveCamera }
+ref: cameraRef = null as any as { camera: PerspectiveCamera }
 
 const c = new Color('#fff')
 
@@ -392,10 +391,12 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 
 const indexColor = 0x9966ff
 
+const FONT_SIZE = 7
+
 const colIndexText = Array.from({ length: mapData.width }, (v, i) => {
   const testText = new Text()
   testText.text = i
-  testText.fontSize = 1.2
+  testText.fontSize = FONT_SIZE
   testText.color = indexColor
   testText.position.z = 0.5
   testText.position.x = x0 + i * SIZEP - SIZEP / 2
@@ -408,9 +409,9 @@ const colIndexText = Array.from({ length: mapData.width }, (v, i) => {
 const rowIndexText = Array.from({ length: mapData.height }, (v, i) => {
   const testText = new Text()
   testText.text = alphabet[i]
-  testText.fontSize = 1.2
+  testText.fontSize = FONT_SIZE
   testText.color = indexColor
-  testText.position.z = 2
+  testText.position.z = SIZEP + OFFSET_Z
   testText.position.y = y0 + i * SIZEP + SIZEP / 4
   testText.position.x = x0 - SIZEP //x0 + i * SIZEP
   testText.textAlign = 'center'
@@ -435,8 +436,8 @@ const initMapCubes = () => {
 
   heightCube.forEach(update(heightImesh))
   lowCube.forEach(update(lowImesh))
-  startCubes.forEach(update(startImesh, 2))
-  endCubes.forEach(update(endImesh, 2))
+  startCubes.forEach(update(startImesh, SIZE))
+  endCubes.forEach(update(endImesh, SIZE))
 
   if (lowImesh.instanceColor) lowImesh.instanceColor.needsUpdate = true
   if (heightImesh.instanceColor) heightImesh.instanceColor.needsUpdate = true
@@ -445,9 +446,9 @@ const initMapCubes = () => {
   heightImesh.instanceMatrix.needsUpdate = true
 }
 
-const lineMaterialUnitforms = buildMeshLineUniforms({ lineWidth: 0.2 })
+const lineMaterialUnitforms = buildMeshLineUniforms({ lineWidth: 1 })
 const lineAnimateMaterialUnitforms = buildMeshLineUniforms({
-  lineWidth: 0.2,
+  lineWidth: 1,
   color: new Color('yellow'),
 })
 
@@ -482,6 +483,8 @@ onMounted(() => {
   })
 
   renderer.onBeforeRender((e: { tiem: number }) => {})
+
+  loadSpine()
 })
 
 const overMap = new Map<number, Function>()
@@ -575,8 +578,8 @@ const play = () => {
   let err = false
   const raw = map.routes[curRouteIndex]
   if (!raw) return
-  const z = (raw.motionMode ? 2.5 : 1.5) + 0.1
-  const ez = z + 0.1
+  const z = raw.motionMode ? SIZEP + OFFSET_Z : OFFSET_Z
+  const ez = z + OFFSET_Z / 3
   const enemyMesh = enemyRef.mesh as TMesh<BoxBufferGeometry>
   console.log('e', enemyRef.position, enemyRef)
   enemyMesh.rotation.x = Math.PI / 3
@@ -591,10 +594,16 @@ const play = () => {
         console.log('done')
         return
       }
-      const v3 = new Vector3(x0 + pos.x * SIZEP, y0 + pos.y * SIZEP, z)
+      const v3 = new Vector3(
+        x0 + pos.x * SIZEP,
+        y0 + pos.y * SIZEP,
+        z + OFFSET_Z * 1.2
+      )
 
       mesh.advance(v3)
-      enemyMesh.position.set(v3.x, v3.y - 0.2, ez + 0.5)
+      // enemyMesh.position.set(v3.x, v3.y - 0.2, ez + 0.5)
+
+      skeletonMesh.position.set(v3.x, v3.y - OFFSET_Y * 1.5, ez)
     } catch (e) {
       console.log(e)
       err = true
@@ -608,6 +617,71 @@ const setEnableRotate = () => {
   enableRotate = !enableRotate
   // console.log('r',)
   troisTree.cameraCtrl!.enableRotate = enableRotate ? true : false
+}
+
+import { skel2Json } from './spine/skel2Json.js'
+import { AssetManager, SkeletonMesh } from './spine-three'
+
+let skeletonMesh: SkeletonMesh
+async function loadSpine() {
+  const assetManager = new AssetManager()
+  assetManager.loadText('/assets/enemy_1000_gopro.atlas')
+  assetManager.loadTexture('/assets/enemy_1000_gopro.png')
+  const skelBuffer = await fetch('/assets/enemy_1000_gopro.skel', {
+    method: 'get',
+  }).then((res) => res.arrayBuffer())
+
+  const json = skel2Json(skelBuffer)
+  const animates = Object.keys(json.animations)
+  console.log('a ', animates)
+
+  requestAnimationFrame(load)
+
+  function load() {
+    if (assetManager.isLoadingComplete()) {
+      const geometry = new TBoxGeometry() //new THREE.BoxGeometry(200, 200, 200);
+      const material = new MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: true,
+      })
+
+      const mesh = new TMesh(geometry, material)
+
+      scene.add(mesh)
+
+      const atlas = new spine.TextureAtlas(
+        assetManager.get('/assets/enemy_1000_gopro.atlas'),
+        (path) => assetManager.get('/assets/' + path)
+      )
+
+      const atlasLoader = new spine.AtlasAttachmentLoader(atlas)
+
+      const skeletonJson = new spine.SkeletonJson(atlasLoader)
+
+      skeletonJson.scale = 0.05
+      const skeletonData = skeletonJson.readSkeletonData(json)
+
+      console.log('skel data', skeletonJson, skeletonData)
+
+      skeletonMesh = new SkeletonMesh(skeletonData)
+      skeletonMesh.rotateX((Math.PI / 180) * 60)
+      skeletonMesh.position.set(1, -5.5, 10)
+      skeletonMesh.state.setAnimation(0, 'Run_Loop', true)
+      // skeletonMesh.state.timeScale = 1
+
+      mesh.add(skeletonMesh)
+
+      let lastTime = Date.now()
+      let lastFrameTime: number = 0
+
+      renderer.onBeforeRender((e: { time: number }) => {
+        const now = e.time / 1000
+        const delta = now - lastFrameTime
+        lastFrameTime = now
+        skeletonMesh.update(delta)
+      })
+    } else requestAnimationFrame(load)
+  }
 }
 </script>
 
