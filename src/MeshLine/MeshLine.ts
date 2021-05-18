@@ -1,4 +1,4 @@
-import { defineComponent, watch } from '@vue/runtime-core'
+import { defineComponent, watch } from 'vue'
 import {
   BufferGeometry,
   Matrix4,
@@ -393,7 +393,7 @@ function MeshLineRaycast(
         widths[Math.floor(i / 3)] != undefined ? widths[Math.floor(i / 3)] : 1
       const precision =
         raycaster.params.Line!.threshold +
-        (material.uniforms.lineWidth.value * width) / 2
+        ((material.uniforms.lineWidth ?? 1).value * width) / 2
       const precisionSq = precision * precision
 
       const distSq = _ray.distanceSqToSegment(

@@ -1,9 +1,9 @@
-import { defineComponent } from '@vue/runtime-core'
+import { defineComponent } from 'vue'
 import { propsValues, ShaderMaterial } from 'troisjs'
 import * as THREE from 'three'
 import { Color } from 'three'
 
-const ShaderChunk = {
+export const ShaderChunk = {
   ['meshline_vert']: [
     '',
     THREE.ShaderChunk.logdepthbuf_pars_vertex,

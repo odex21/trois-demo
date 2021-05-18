@@ -57,8 +57,7 @@
           <BoxGeometry :size="SIZE" />
           <basic-material
             color="#F01D2D"
-            :wireframe="true"
-            :wireframeLinewidth="1"
+            :props="{ wireframe: true, wireframeLinewidth: 1 }"
           />
         </InstancedMesh>
 
@@ -71,8 +70,7 @@
           <BoxGeometry :size="SIZE" />
           <basic-material
             color="#27D0E3"
-            :wireframe="true"
-            :wireframeLinewidth="1"
+            :props="{ wireframe: true, wireframeLinewidth: 1 }"
           />
         </InstancedMesh>
 
@@ -91,34 +89,31 @@
             :points="pathtoPoints(p, i)"
             v-if="i === curRouteIndex"
           >
-            <mesh-line-material
+            <ShaderMaterial
               :ref="($event) => materialRef(i, $event)"
-              :uniforms="lineAnimateMaterialUnitforms"
-            ></mesh-line-material>
+              :props="{
+                transparent: true,
+                vertexShader: ShaderChunk.meshline_vert,
+                fragmentShader: ShaderChunk.meshline_frag,
+                uniforms: lineAnimateMaterialUnitforms,
+              }"
+            />
           </MeshLine>
         </template>
         <MeshLine :points="currentRotue">
-          <mesh-line-material
-            :uniforms="lineMaterialUnitforms"
-          ></mesh-line-material>
+          <ShaderMaterial
+            :props="{
+              transparent: true,
+              vertexShader: ShaderChunk.meshline_vert,
+              fragmentShader: ShaderChunk.meshline_frag,
+              uniforms: lineMaterialUnitforms,
+            }"
+          />
         </MeshLine>
-        <!-- <Box ref="enemyRef" :size="1.5">
-          <BasicMaterial>
-            <Texture :src="enemyPic" />
-          </BasicMaterial>
-        </Box> -->
-        <Image
-          ref="enemyRef"
-          :width="100"
-          :height="100"
-          :src="enemyPic"
-          keepSize
-        >
-        </Image>
       </Scene>
     </Renderer>
 
-    <div class="h-300px top-0 right-3 max-w-300px w-full z-10 absolute">
+    <div class="h-300px w-full max-w-300px top-0 right-3 z-10 absolute">
       <div class="flex w-full items-center">
         <span class="mr-6 text-white"> 当前路线： {{ curRouteIndex }} </span>
         <ElSlider
@@ -169,10 +164,12 @@ import {
   Raycaster,
   Mesh,
   CubeTexture,
-  FXAAPass,
   Box,
   Texture,
   Image,
+  FXAAPass,
+  BokehPass,
+  ShaderMaterial,
 } from 'troisjs'
 import type { ThreeInterface } from 'troisjs/src/core/useThree'
 import {
@@ -195,7 +192,7 @@ import {
   MeshBasicMaterial,
   BoxHelper,
   GridHelper,
-  ShaderMaterial,
+  ShaderMaterial as TShaderMaterial,
   Color,
   PlaneGeometry,
   BoxGeometry as TBoxGeometry,
@@ -216,6 +213,7 @@ import {
   MeshLineMaterial,
   buildMeshLineUniforms,
   MeshLineGeometory,
+  ShaderChunk,
 } from './MeshLine'
 
 import { LineCubeMaterial } from './CubeMaterial'
@@ -386,7 +384,7 @@ const pathtoPoints = (path: PFResArr[], i: number) => {
 
 const getPathColor = (i: number) => {
   const raw = map.routes[i]
-  return raw?.motionMode ? new Color('red') : new Color('yellow')
+  return raw?.motionMode ? new Color('red') : new Color('blue')
 }
 
 const heightCube = cubes.filter((cube) => cube.tile.heightType)
@@ -471,6 +469,8 @@ ref: enemyRef = null as any
 const tasks = new Map<string, Function>()
 
 onMounted(() => {
+  renderer.renderer.setPixelRatio(window.devicePixelRatio)
+
   dummy = new Object3D()
 
   let size = mapData.width + 4
@@ -487,6 +487,7 @@ onMounted(() => {
 
   // const helper = new CameraHelper(cameraRef.camera)
   // sceneRef.scene.add(helper)
+
   initMapCubes()
 
   renderer.onBeforeRender((e: { time: number }) => {
@@ -574,13 +575,13 @@ const idToXY = (id: number) => {
 }
 
 const play = () => {
-  let begin: number
-
   const targetRef = routeRefs.get(curRouteIndex)
+  console.log(targetRef, routeRefs)
   if (!targetRef) return
-  const material = targetRef.material as ShaderMaterial
+  const material = targetRef.material as TShaderMaterial
+  console.log('?', material.uniforms, targetRef, material.uniforms.color)
   const color = getPathColor(curRouteIndex)
-  material.uniforms.color.value = color
+  material.uniforms.color = { value: color }
 
   const r = routeMap[curRouteIndex]
   const mesh = tubeMeshRef.geometry as MeshLineGeometory
@@ -591,9 +592,6 @@ const play = () => {
   if (!raw) return
   const z = raw.motionMode ? SIZEP + OFFSET_Z : OFFSET_Z
   const ez = z + OFFSET_Z / 3
-  const enemyMesh = enemyRef.mesh as TMesh<BoxBufferGeometry>
-  console.log('e', enemyRef.position, enemyRef)
-  enemyMesh.rotation.x = Math.PI / 3
 
   tasks.set('route', (time: number) => {
     if (err) return
@@ -614,7 +612,7 @@ const play = () => {
       mesh.advance(v3)
       // enemyMesh.position.set(v3.x, v3.y - 0.2, ez + 0.5)
 
-      skeletonMesh.position.set(v3.x, v3.y - OFFSET_Y * 1.5, ez)
+      skeletonMesh.position.set(v3.x + OFFSET_Y * 2, v3.y - OFFSET_Y * 1.5, ez)
     } catch (e) {
       console.log(e)
       err = true
@@ -703,5 +701,11 @@ async function loadSpine() {
 
 body {
   margin: 0;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>

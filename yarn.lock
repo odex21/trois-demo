@@ -985,10 +985,10 @@ troika-worker-utils@^0.41.0:
   resolved "https://registry.nlark.com/troika-worker-utils/download/troika-worker-utils-0.41.0.tgz#b811a9d2d5ca707869db50e9e096d5ef3b67b2e6"
   integrity sha1-uBGp0tXKcHhp21Dp4JbV7ztnsuY=
 
-troisjs@^0.3.0-beta.5:
-  version "0.3.0-beta.5"
-  resolved "https://registry.nlark.com/troisjs/download/troisjs-0.3.0-beta.5.tgz#2e154c6fc82c91e144deb167591f1d75e3f9b941"
-  integrity sha1-LhVMb8gskeFE3rFnWR8ddeP5uUE=
+troisjs@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.nlark.com/troisjs/download/troisjs-0.3.1.tgz#0bbb4dfbb57e9b887c5cafbf75cd96338ca2681f"
+  integrity sha1-C7tN+7V+m4h8XK+/dc2WM4yiaB8=
 
 ts-interface-checker@^0.1.9:
   version "0.1.13"
