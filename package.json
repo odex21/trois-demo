@@ -14,7 +14,7 @@
     "pathfinding": "^0.4.18",
     "simplex-noise": "^2.4.0",
     "stats.js": "^0.17.0",
-    "three": "0.127",
+    "three": "0.137",
     "three.meshline": "^1.3.0",
     "troika-three-text": "^0.41.1",
     "troisjs": "^0.3.1",
